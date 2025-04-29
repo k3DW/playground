@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace mguid {
@@ -48,10 +49,10 @@ struct element;
 
 template <typename T>
 struct element<T> {
-    template <typename TRet, std::size_t TIdx>
-    constexpr TRet& get() {
+    template <typename TRet, std::size_t TIdx, typename Self>
+    constexpr decltype(auto) get(this Self&& self) {
         static_assert(TIdx == 0, "");
-        return value;
+        return std::forward_like<Self>(self.value);
     }
 
     constexpr auto operator<=>(const element&) const = default;
@@ -60,12 +61,12 @@ struct element<T> {
 
 template <typename TFirst, typename... TRest>
 struct element<TFirst, TRest...> {
-    template <typename TRet, std::size_t TIdx>
-    constexpr TRet& get() {
+    template <typename TRet, std::size_t TIdx, typename Self>
+    constexpr decltype(auto) get(this Self&& self) {
         if constexpr (TIdx == 0) {
-            return value;
+            return std::forward_like<Self>(self.value);
         } else {
-            return next_element.template get<TRet, TIdx - 1>();
+            return std::forward_like<Self>(self.next_element).template get<TRet, TIdx - 1>();
         }
     }
     constexpr auto operator<=>(const element&) const = default;
@@ -97,18 +98,18 @@ struct tuple {
 #undef MISSING_BRACE_SUPPRESSED
 #endif
 
-    template <std::size_t TIdx>
-    constexpr detail::type_at_index<TIdx, TTypes...>::type& get()
+    template <std::size_t TIdx, typename Self>
+    constexpr decltype(auto) get(this Self&& self)
         requires(TIdx < size)
     {
-        return data.template get<
+        return std::forward_like<Self>(self.data).template get<
             typename detail::type_at_index<TIdx, TTypes...>::type, TIdx>();
     }
 
-    template <typename T>
-    constexpr T& get() {
+    template <typename T, typename Self>
+    constexpr decltype(auto) get(this Self&& self) {
         constexpr std::size_t idx{detail::index_of_type<T, TTypes...>()};
-        return data.template get<T, idx>();
+        return std::forward_like<Self>(self.data).template get<T, idx>();
     }
 
     constexpr void swap(tuple& other) noexcept
