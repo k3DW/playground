@@ -3,6 +3,7 @@ add_library(2025_cppnow
 )
 target_sources(2025_cppnow PUBLIC FILE_SET headers TYPE HEADERS FILES
     constant.hpp
+    tuple.hpp
 )
 
 target_include_directories(2025_cppnow PUBLIC .)
