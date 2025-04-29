@@ -1,4 +1,5 @@
 // Copyright Matthew Guidry
+#pragma once
 
 #include <array>
 #include <concepts>
