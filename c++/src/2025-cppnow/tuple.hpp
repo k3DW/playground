@@ -119,6 +119,12 @@ struct tuple {
             typename detail::type_at_index<TIdx, TTypes...>::type, TIdx>();
     }
 
+    template <std::size_t TIdx, typename Self>
+    constexpr decltype(auto) operator[](this Self&& self, std::integral_constant<std::size_t, TIdx>) {
+        return std::forward_like<Self>(self.data).template get<
+            typename detail::type_at_index<TIdx, TTypes...>::type, TIdx>();
+    }
+
     constexpr void swap(tuple& other) noexcept
         requires((... && std::is_nothrow_swappable_v<TTypes>))
     {
